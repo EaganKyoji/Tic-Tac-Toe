@@ -178,6 +178,11 @@ def best_move(board):
         for j in range(3):
             if board[i][j] == '':
                 board[i][j] = 'o'
+
+                if checkWinMinMax(board) == "win":
+                    board[i][j] = ''
+                    return (i, j)
+
                 skor  = MinMax(board, False)
                 board[i][j] = ''
 
@@ -229,7 +234,7 @@ while Running:
 
             if turn == 'o':
                 pygame.event.pump()
-                pygame.time.delay(1000)
+                pygame.time.delay(500)
                 row, col = best_move(map)
                 pixel_x = 100 + (col * 100)
                 pixel_y = 100 + (row * 100)
