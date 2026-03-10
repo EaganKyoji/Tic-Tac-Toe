@@ -133,51 +133,27 @@ def collision(section, mouse_x, mouse_y):
 virtual_box()
 draw_stick()
 
-def checkWinMinMax(map):
-    map_array = np.array(map)
-    winner = ''
-    winner_info = {
-        "row_col_number" : -1,
-        "row_col_win" : ""
-    }
-
-    main_diagonal = map_array.diagonal()
-    off_diagonal = np.fliplr(map_array).diagonal()
-
-    if len(set(main_diagonal)) == 1 and set(main_diagonal) != {''}:
-        winner = main_diagonal[0]
-        winner_info['row_col_win'] = "main"
-    elif len(set(off_diagonal)) == 1 and set(off_diagonal) != {''}:
-        winner = off_diagonal[0]
-        winner_info["row_col_win"] = "off"
-
-    for row in range(3):
-        if winner: break
-
-        if len(set(map_array[row, :])) == 1 and set(map_array[row, :]) != {''}:
-            winner = map_array[row, 0]
-            winner_info['row_col_number'] = row
-            winner_info['row_col_win'] = "row"
+def checkWinMinMax(board):
+    for i in range(3):
+        if board[i][0] == board[i][1] == board[i][2] != '':
+            return "win"
+        if board[0][i] == board[1][i] == board[2][i] != '':
+            return "win"
     
-    for col in range(3):
-        if winner: break
-
-        if len(set(map_array[:, col])) == 1 and set(map_array[:, col]) != {''}:
-            winner = map_array[0, col]
-            winner_info['row_col_number'] = col
-            winner_info['row_col_win'] = "col"
-
-    isFull = True if '' not in map_array.flatten() else False
-
-    if isFull and not winner:
-        return "draw"
-    if winner:
+    if board[0][0] == board[1][1] == board[2][2] != '':
         return "win"
+    if board[0][2] == board[1][1] == board[2][0] != '':
+        return "win"
+    
+    if all(board[i][j] != '' for i in range(3) for j in range(3)):
+        return "draw"
+
+    return None
+        
 
 def MinMax(board, is_ai_turn):
-    mapMinMax = copy.deepcopy(board)
     
-    hasil = checkWinMinMax(mapMinMax)
+    hasil = checkWinMinMax(board)
     if hasil == "win":
         return +1 if not is_ai_turn else -1
     if hasil == "draw": 
@@ -187,10 +163,10 @@ def MinMax(board, is_ai_turn):
 
     for i in range(3):
         for j in range(3):
-            if mapMinMax[i][j] == '':
-                mapMinMax[i][j] = 'o' if is_ai_turn else 'x'
-                skor = MinMax(mapMinMax, not is_ai_turn)
-                mapMinMax[i][j] = ''
+            if board[i][j] == '':
+                board[i][j] = 'o' if is_ai_turn else 'x'
+                skor = MinMax(board, not is_ai_turn)
+                board[i][j] = ''
                 skors.append(skor)
     return max(skors) if is_ai_turn else min(skors)
 
