@@ -1,5 +1,6 @@
 import pygame
 import numpy as np
+import copy
 
 pygame.init()
 
@@ -132,6 +133,83 @@ def collision(section, mouse_x, mouse_y):
 virtual_box()
 draw_stick()
 
+def checkWinMinMax(map):
+    map_array = np.array(map)
+    winner = ''
+    winner_info = {
+        "row_col_number" : -1,
+        "row_col_win" : ""
+    }
+
+    main_diagonal = map_array.diagonal()
+    off_diagonal = np.fliplr(map_array).diagonal()
+
+    if len(set(main_diagonal)) == 1 and set(main_diagonal) != {''}:
+        winner = main_diagonal[0]
+        winner_info['row_col_win'] = "main"
+    elif len(set(off_diagonal)) == 1 and set(off_diagonal) != {''}:
+        winner = off_diagonal[0]
+        winner_info["row_col_win"] = "off"
+
+    for row in range(3):
+        if winner: break
+
+        if len(set(map_array[row, :])) == 1 and set(map_array[row, :]) != {''}:
+            winner = map_array[row, 0]
+            winner_info['row_col_number'] = row
+            winner_info['row_col_win'] = "row"
+    
+    for col in range(3):
+        if winner: break
+
+        if len(set(map_array[:, col])) == 1 and set(map_array[:, col]) != {''}:
+            winner = map_array[0, col]
+            winner_info['row_col_number'] = col
+            winner_info['row_col_win'] = "col"
+
+    isFull = True if '' not in map_array.flatten() else False
+
+    if isFull and not winner:
+        return "draw"
+    if winner:
+        return "win"
+
+def MinMax(board, is_ai_turn):
+    mapMinMax = copy.deepcopy(board)
+    
+    hasil = checkWinMinMax(mapMinMax)
+    if hasil == "win":
+        return +1 if not is_ai_turn else -1
+    if hasil == "draw": 
+        return 0
+    
+    skors = []
+
+    for i in range(3):
+        for j in range(3):
+            if mapMinMax[i][j] == '':
+                mapMinMax[i][j] = 'o' if is_ai_turn else 'x'
+                skor = MinMax(mapMinMax, not is_ai_turn)
+                mapMinMax[i][j] = ''
+                skors.append(skor)
+    return max(skors) if is_ai_turn else min(skors)
+
+def best_move(board):
+    best_score = -999
+    move = (0, 0)
+
+    for i in range(3):
+        for j in range(3):
+            if board[i][j] == '':
+                board[i][j] = 'o'
+                skor  = MinMax(board, False)
+                board[i][j] = ''
+
+                if skor>best_score:
+                    best_score = skor
+                    move = (i, j)
+    return move
+
 while Running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -171,6 +249,18 @@ while Running:
 
             checkWin()
             switch_turn()
+            pygame.display.update()  
+
+            if turn == 'o':
+                pygame.event.pump()
+                pygame.time.delay(1000)
+                row, col = best_move(map)
+                pixel_x = 100 + (col * 100)
+                pixel_y = 100 + (row * 100)
+                placeXO(pixel_x, pixel_y)
+                map[row][col] = 'o'
+                checkWin()
+                switch_turn()
     pygame.display.update()
 
 pygame.quit()
